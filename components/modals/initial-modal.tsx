@@ -1,5 +1,6 @@
 "use client"
 import * as z from "zod"
+import axios from "axios"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle, DialogFooter } from "../ui/dialog"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react"
 import FileUpload from "../file-upload"
+import { useRouter } from "next/navigation"
 
 const schema = z.object({
     name: z.string().min(1, {
@@ -19,6 +21,7 @@ const schema = z.object({
 })
 
 export const InitialModal = () => {
+    const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
     const form = useForm({
         resolver: zodResolver(schema),
@@ -31,7 +34,21 @@ export const InitialModal = () => {
     const isLoading = form.formState.isSubmitting;
 
     const onSubmit = async (data: z.infer<typeof schema>) => {
-        console.log(data);
+        try {
+
+            await axios.post("/api/server", data)
+
+            form.reset();
+
+            router.refresh();
+            window.location.reload();
+
+        } catch (error) {
+            console.log("Error creating server");
+            
+            console.log(error);
+
+        }
     }
 
     useEffect(() => {
@@ -64,7 +81,7 @@ export const InitialModal = () => {
                                             <FormLabel htmlFor="imageUrl" className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">Server Icon</FormLabel>
                                             <FormControl>
 
-                                                <FileUpload endpoint="serverImage" value={field.value} onChange={field.onChange}/>
+                                                <FileUpload endpoint="serverImage" value={field.value} onChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage className="text-red-500" />
                                         </FormItem>
